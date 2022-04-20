@@ -1,6 +1,13 @@
 CHANGES
 =======
 
+Version 0.7.0
+-------------
+
+- Documentation updates and dedicated documentation site at: https://arango-orm.readthedocs.io/en/latest/index.html
+- Graph.delete_tree method to delete an already "expanded" object and all it's linked data.
+-
+
 Versoin 0.6.2
 -------------
 
@@ -40,7 +47,7 @@ Version 0.6.1
     p2.name = 'xyz'
     print(p2._key)
     print(p2.name)  # same as p2._key
-    
+
 Version 0.6
 -----------
 

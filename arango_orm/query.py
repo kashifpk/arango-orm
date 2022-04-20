@@ -249,7 +249,6 @@ class Query(object):
             )
         else:
             aql += "\n RETURN rec"
-        # print(aql)
 
         results = self._db.aql.execute(
             aql, bind_vars=self._bind_vars, ttl=self._cursor_ttl

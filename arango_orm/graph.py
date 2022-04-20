@@ -3,12 +3,10 @@ from typing import Type
 
 from .collections import Relation, Collection, CollectionMeta
 
-
 # import pdb
 
 
 class GraphConnection(object):
-
     def __init__(self, collections_from, relation, collections_to):
         "Create a graph connection object"
 
@@ -32,11 +30,8 @@ class GraphConnection(object):
 
     def __str__(self):
         ret = "<{}(collections_from={}, relation={}, collections_to={})>".format(
-            self.__class__.__name__,
-            str(self.collections_from),
-            str(self.relation),
-            str(self.collections_to)
-        )
+            self.__class__.__name__, str(self.collections_from),
+            str(self.relation), str(self.collections_to))
 
         return ret
 
@@ -55,12 +50,16 @@ class GraphConnection(object):
         if isinstance(self.collections_from, (list, tuple)):
             cols_from = self.collections_from
         else:
-            cols_from = [self.collections_from, ]
+            cols_from = [
+                self.collections_from,
+            ]
 
         if isinstance(self.collections_to, (list, tuple)):
             cols_to = self.collections_to
         else:
-            cols_to = [self.collections_to, ]
+            cols_to = [
+                self.collections_to,
+            ]
 
         from_col_names = [col.__collection__ for col in cols_from]
         to_col_names = [col.__collection__ for col in cols_to]
@@ -77,7 +76,9 @@ class Graph(object):
     graph_connections = None
 
     def __init__(self,
-                 graph_name=None, graph_connections=None, connection=None):
+                 graph_name=None,
+                 graph_connections=None,
+                 connection=None):
 
         self.vertices = {}
         self.edges = {}
@@ -99,11 +100,15 @@ class Graph(object):
 
                 froms = gc.collections_from
                 if not isinstance(froms, (list, tuple)):
-                    froms = [froms, ]
+                    froms = [
+                        froms,
+                    ]
 
                 tos = gc.collections_to
                 if not isinstance(tos, (list, tuple)):
-                    tos = [tos, ]
+                    tos = [
+                        tos,
+                    ]
 
                 # Note: self.vertices stores collection classes while self.relations stores
                 # relation objects (not classes)
@@ -114,20 +119,27 @@ class Graph(object):
                 if gc.relation.__collection__ not in self.edges:
                     self.edges[gc.relation.__collection__] = gc.relation
 
-        for col_name, col in [(col_name, col) for col_name, col in self.vertices.items()
+        for col_name, col in [(col_name, col)
+                              for col_name, col in self.vertices.items()
                               if len(col._inheritance_mapping) > 0]:
             subclasses = self._get_recursive_subclasses(col).union([col])
 
             if len(subclasses) > 1:
                 _inheritances = {}
-                for subclass in [subclass for subclass in subclasses if subclass.__name__ in col._inheritance_mapping]:
-                    _inheritances[col._inheritance_mapping[subclass.__name__]] = subclass
+                for subclass in [
+                        subclass for subclass in subclasses
+                        if subclass.__name__ in col._inheritance_mapping
+                ]:
+                    _inheritances[col._inheritance_mapping[
+                        subclass.__name__]] = subclass
                 if len(_inheritances):
                     self.inheritances[col_name] = _inheritances
 
     def _get_recursive_subclasses(self, cls):
-        return set(cls.__subclasses__()).union(
-            [s for c in cls.__subclasses__() for s in self._get_recursive_subclasses(c)])
+        return set(cls.__subclasses__()).union([
+            s for c in cls.__subclasses__()
+            for s in self._get_recursive_subclasses(c)
+        ])
 
     def relation(self, relation_from, relation, relation_to):
         """
@@ -142,7 +154,8 @@ class Graph(object):
 
         return relation
 
-    def _inheritance_mapping_inspector(self, collection_class: Collection, doc_dict: dict):
+    def _inheritance_mapping_inspector(self, collection_class: Collection,
+                                       doc_dict: dict):
         field = collection_class._inheritance_field
         mapping = self.inheritances[collection_class.__collection__]
 
@@ -152,7 +165,8 @@ class Graph(object):
 
         return mapping[doc_dict[field]]
 
-    def inheritance_mapping_resolver(self, col_name: str, doc_dict) -> Type[Collection]:
+    def inheritance_mapping_resolver(self, col_name: str,
+                                     doc_dict) -> Type[Collection]:
         """
         Custom method to resolve inheritance mapping.
 
@@ -172,12 +186,14 @@ class Graph(object):
         CollectionClass = self.vertices[col_name]
 
         if CollectionClass.__collection__ in self.inheritances:
-            found_class = self._inheritance_mapping_inspector(CollectionClass, doc_dict)
+            found_class = self._inheritance_mapping_inspector(
+                CollectionClass, doc_dict)
             if issubclass(found_class, Collection):
                 CollectionClass = found_class
 
         elif callable(self.inheritance_mapping_resolver):
-            resolved_class = self.inheritance_mapping_resolver(col_name, doc_dict)
+            resolved_class = self.inheritance_mapping_resolver(
+                col_name, doc_dict)
             if issubclass(resolved_class, Collection):
                 CollectionClass = resolved_class
 
@@ -293,7 +309,9 @@ class Graph(object):
         filter_func = None
         if only:
             if not isinstance(only, (list, tuple)):
-                only = [only, ]
+                only = [
+                    only,
+                ]
 
             c_str = ""
             for c in only:
@@ -309,17 +327,14 @@ class Graph(object):
                 if ({condition})
                     {{ return; }}
                 return 'exclude';
-            """.format(
-                condition=c_str
-            )
+            """.format(condition=c_str)
 
-        results = graph.traverse(
-            start_vertex=doc_id,
-            direction=direction,
-            vertex_uniqueness='path',
-            min_depth=1, max_depth=depth,
-            filter_func=filter_func
-        )
+        results = graph.traverse(start_vertex=doc_id,
+                                 direction=direction,
+                                 vertex_uniqueness='path',
+                                 min_depth=1,
+                                 max_depth=depth,
+                                 filter_func=filter_func)
 
         self._objectify_results(results['paths'], doc_obj)
 
@@ -330,3 +345,32 @@ class Graph(object):
         doc_obj = self._objectify_results(results)
 
         return doc_obj
+
+    def delete_tree(self, doc_obj):
+        """
+        Remove node and all nodes linked to it based on traversal criteria.
+
+        Only nodes present in doc_obj._relations dict are removed.
+        """
+        objs_to_delete = [doc_obj]
+
+        def get_linked_objects(obj):
+            ret = []
+            for _, e_objs in getattr(obj, '_relations', {}).items():
+                for e_obj in e_objs:
+                    ret.append(e_obj)
+                    v_obj = e_obj._next
+                    ret.append(v_obj)
+
+                    if hasattr(v_obj, '_relations'):
+                        child_objs = get_linked_objects(v_obj)
+
+            return ret
+
+        if hasattr(doc_obj, '_relations'):
+            objs_to_delete.extend(get_linked_objects(doc_obj))
+
+        for obj in reversed(objs_to_delete):
+            self._db.delete(obj)
+
+        doc_obj._relations = {}
