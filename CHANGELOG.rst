@@ -6,7 +6,7 @@ Version 0.7.0
 
 - Documentation updates and dedicated documentation site at: https://arango-orm.readthedocs.io/en/latest/index.html
 - Graph.delete_tree method to delete an already "expanded" object and all it's linked data.
--
+- Fixes memory leak related to marshmallow schemas not getting cleaned up correctly. Thanks @SoundsSerious
 
 Versoin 0.6.2
 -------------
