@@ -1,6 +1,13 @@
 CHANGES
 =======
 
+Version 0.7.1
+-------------
+
+- Add Collection.get_schema_class(), schema() return instance instead
+- Fix Collection.schema(). Marshmallow schema is recreated in case of class inheritation.
+- Added Conditional Checking Of Marshmallow Fields
+
 Version 0.7.0
 -------------
 
@@ -8,7 +15,8 @@ Version 0.7.0
 - Graph.delete_tree method to delete an already "expanded" object and all it's linked data.
 - Fixes memory leak related to marshmallow schemas not getting cleaned up correctly. Thanks @SoundsSerious
 
-Versoin 0.6.2
+
+Version 0.6.2
 -------------
 
 Merging PR from @chris-green with thanks.
