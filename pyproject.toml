@@ -1,0 +1,28 @@
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+name = "arango-orm"
+version = "0.7.1"
+description = "A SQLAlchemy like ORM implementation for arangodb"
+authors = ["Kashif Iftikhar <kashif@compulife.com.pk>"]
+license = "GNU General Public License v2 (GPLv2)"
+readme = "README.rst"
+packages = [{include = "arango_orm"}]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+python-arango = "7.1.0"
+marshmallow = "3.15.0"
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.0.270"
+black = "^23.3.0"
+
+[tool.black]
+line-length = 100
+
+[tool.ruff]
+line-length = 100
+src = ["quranref"]
