@@ -1,267 +1,195 @@
 "Test cases for the :module:`arango_orm.database`"
 
-from datetime import date
-from arango_orm import CollectionBase, Collection
-from arango_orm.fields import String, Integer, Dict, DateTime, Nested, List
+from datetime import date, datetime
+from arango_orm import Collection
 
-from . import TestBase
-from .data import Person, Car
+from . import has_same_items, all_in,  verify_property_values
+from .data import Car, Person
 
 
-class TestCollection(TestBase):
-    def test_01_object_from_dict(self):
-        pd = {
+def test_object_from_dict():
+    pd = {
+        "_key": "37405-4564665-7",
+        "dob": "2016-09-12",
+        "name": "Kashif Iftikhar",
+    }
+    new_person = Person(**pd)
+
+    assert "37405-4564665-7" == new_person._key
+    assert "Kashif Iftikhar" == new_person.name
+    assert date(year=2016, month=9, day=12) == new_person.dob
+
+
+    pd = {
+        "key_": "37405-4564665-7",
+        "dob": "2016-09-12",
+        "name": "Kashif Iftikhar",
+    }
+    new_person = Person(**pd)
+
+    assert "37405-4564665-7" == new_person.key_
+    assert new_person.key_ == new_person._key
+    assert "Kashif Iftikhar" == new_person.name
+    assert date(year=2016, month=9, day=12) == new_person.dob
+
+
+def test_object_creation():
+    p = Person(name="test", _key="12312", dob=date(year=2016, month=9, day=12))
+    assert "test" == p.name
+    assert "12312" == p._key
+    assert date(year=2016, month=9, day=12) == p.dob
+
+
+def test_object_dump():
+    p = Person(name="test", _key="12312", dob=date(year=2016, month=9, day=12))
+    d = p.model_dump(mode="json", by_alias=True)
+
+    assert "test" == d["name"]
+    assert "12312" == d["_key"]
+    assert "2016-09-12" == d["dob"]
+
+
+def test_object_dump_only():
+    p = Person(name="test", _key="12312", dob=date(year=2016, month=9, day=12))
+
+    only_fields = ["key_", "name"]
+    d = p.model_dump(include=only_fields)
+
+    assert has_same_items(only_fields, d.keys())
+
+
+def test_object_partial_fields_and_dump():
+    p = Person(name="test", _key="12312")
+    d = p.model_dump()
+
+    assert all_in(["name", "key_"], d)
+    assert d["dob"] is None
+
+
+def test_object_load_and_dump_with_extra_fields_disabled():
+    d = {
+        "_key": "person_1",
+        "name": "John Doe",
+        "dob": "2016-09-12",
+        "profession": "absent",
+    }
+    p = Person(**d)
+
+    assert hasattr(p, "_key")
+    assert hasattr(p, "name")
+    assert hasattr(p, "dob")
+    assert hasattr(p, "profession") is False
+
+    d2 = p.model_dump(by_alias=True)
+    assert all_in(["_key", "name", "dob"], d2)
+    assert "profession" not in d2
+
+
+def test_object_load_and_dump_with_extra_fields_enabled():
+    d = {
+        "make": "Mitsubishi",
+        "model": "Lancer",
+        "year": 2005,
+        "nickname": "Lancer Evo",
+    }
+
+    c = Car(**d)
+    assert verify_property_values(c, **d)
+    assert all_in(["make", "model", "year", "nickname"], c.model_dump())
+
+
+def test_collection_mixin():
+    class ResultMixin:
+        timestamp: datetime
+        stats: str
+
+    class PingResult(ResultMixin, Collection):
+        __collection__ = "ping_results"
+        host: str
+        status: str
+        error_message: str
+        stats: dict
+
+    assert all_in(
+        ["key_", "timestamp", "host", "status", "error_message", "stats"],
+        PingResult.model_fields,
+    )
+
+    assert PingResult.model_fields["stats"].annotation is dict  # not String from ResultMixin
+
+
+def test_multi_level_collection_inheritence():
+    class ResultMixin:
+        key_: str
+        timestamp: datetime
+        stats: str
+
+    class Result(ResultMixin):
+        host: str
+        status: str
+        error_message: str
+
+    class PingResult(Result, Collection):
+        __collection__ = "ping_results"
+
+        stats: dict
+
+    assert all_in(
+        ["key_", "timestamp", "host", "status", "error_message", "stats"],
+        PingResult.model_fields,
+    )
+
+    assert PingResult.model_fields["stats"].annotation is dict  # not String from ResultMixin
+
+
+def test_dirty_fields():
+    p1 = Person(name="test", _key="12312", dob=date(year=2016, month=9, day=12))
+    p2 = Person(
+        **{
             "_key": "37405-4564665-7",
             "dob": "2016-09-12",
             "name": "Kashif Iftikhar",
         }
-        new_person = Person._load(pd)
+    )
 
-        assert "37405-4564665-7" == new_person._key
-        assert "Kashif Iftikhar" == new_person.name
-        assert date(year=2016, month=9, day=12) == new_person.dob
-        assert "37405-4564665-7" == new_person._key
+    assert has_same_items(
+        p1._dirty, ["name", "key_", "rev_", "dob", "age", "is_staff", "favorite_hobby"]
+    )
+    assert has_same_items(
+        p2._dirty, ["name", "key_", "rev_", "dob", "age", "is_staff", "favorite_hobby"]
+    )
 
-    def test_02_object_creation(self):
-        p = Person(
-            name="test", _key="12312", dob=date(year=2016, month=9, day=12)
-        )
-        assert "test" == p.name
-        assert "12312" == p._key
-        assert date(year=2016, month=9, day=12) == p.dob
+    p1._dirty.clear()
+    p1.name = "test"  # change name, even if the same as before!
+    assert has_same_items(p1._dirty, ["name"])
 
-    def test_03_object_dump(self):
-        p = Person(
-            name="test", _key="12312", dob=date(year=2016, month=9, day=12)
-        )
-        d = p._dump()
 
-        print(d)
-        assert "test" == d["name"]
-        assert "12312" == d["_key"]
-        assert "12312" == d["_key"]
-        assert "2016-09-12" == d["dob"]
+def test_nested_field():
+    pd = {
+        "_key": "37405-4564665-7",
+        "dob": "2016-09-12",
+        "name": "Kashif Iftikhar",
+        "favorite_hobby": {
+            "name": "Programming",
+            "equipment": [{"name": "computer", "price": 500}, {"name": "chair", "price": 100}],
+        },
+    }
+    new_person = Person(**pd)
+    assert "37405-4564665-7" == new_person.key_
+    assert "Kashif Iftikhar" == new_person.name
+    assert "2016-09-12" == new_person.dob.isoformat()
+    assert "Programming" == new_person.favorite_hobby.name
+    assert "computer" == new_person.favorite_hobby.equipment[0].name
 
-    def test_03_01_object_dump_only(self):
-        p = Person(
-            name="test", _key="12312", dob=date(year=2016, month=9, day=12)
-        )
-        only_fields = ["_key", "name"]
-        d = p._dump(only=only_fields)
 
-        self.assert_has_same_items(only_fields, d.keys())
+def test_class_inheritance():
+    class SuperCar(Car):
+        __collection__ = "supercar"
 
-    def test_04_object_partial_fields_and_dump(self):
-        p = Person(name="test", _key="12312")
-        d = p._dump()
+    bmw_m3_e92 = SuperCar(**{"make": "BMW", "model": "M3 E92", "year": "2009"})
 
-        print(d)
-        self.assert_all_in(["name", "_key"], d)
-        assert d["dob"] is None
+    assert bmw_m3_e92.__collection__ == "supercar"
 
-    def test_05_object_load_and_dump_with_extra_fields_disabled(self):
-        d = {
-            "_key": "person_1",
-            "name": "John Doe",
-            "dob": "2016-09-12",
-            "profession": "absent",
-        }
-        p = Person._load(d)
 
-        assert hasattr(p, "_key")
-        assert hasattr(p, "name")
-        assert hasattr(p, "dob")
-        assert hasattr(p, "profession") is False
-
-        d2 = p._dump()
-        self.assert_all_in(["_key", "name", "dob"], d2)
-        assert "profession" not in d2
-
-    def test_06_object_load_and_dump_with_extra_fields_enabled(self):
-        d = {
-            "make": "Mitsubishi",
-            "model": "Lancer",
-            "year": 2005,
-            "nickname": "Lancer Evo",
-        }
-
-        c = Car._load(d)
-
-        assert hasattr(c, "make")
-        assert hasattr(c, "model")
-        assert hasattr(c, "year")
-        assert hasattr(c, "nickname")
-
-        self.assert_all_in(["make", "model", "year", "nickname"], c._dump())
-
-    def test_07_collection_mixin(self):
-        class ResultMixin(CollectionBase):
-            _key = String()
-            _timestamp = DateTime()
-            stats = String()
-
-        class PingResult(ResultMixin, Collection):
-            __collection__ = "ping_results"
-            host = String(required=True)
-            status = String(required=True)  # UP, DOWN, SLOW
-            error_message = String()
-            stats = Dict()
-
-        self.assert_all_in(
-            ["_key", "_timestamp", "host", "status", "error_message", "stats"],
-            PingResult._fields,
-        )
-
-        assert (
-                type(PingResult._fields["stats"]) is Dict
-        )  # not String from ResultMixin
-
-    def test_08_multi_level_collection_inheritence(self):
-        class ResultMixin(CollectionBase):
-            _key = String()
-            _timestamp = DateTime()
-            stats = String()
-
-        class Result(ResultMixin):
-            host = String(required=True)
-            status = String(required=True)  # UP, DOWN, SLOW
-            error_message = String()
-
-        class PingResult(Result, Collection):
-            __collection__ = "ping_results"
-
-            stats = Dict()
-
-        print(PingResult._fields.keys())
-        self.assert_all_in(
-            ["_key", "_timestamp", "host", "status", "error_message", "stats"],
-            PingResult._fields,
-        )
-
-        assert (
-                type(PingResult._fields["stats"]) is Dict
-        )  # not String from ResultMixin
-
-    def test_09_load_from_instance_with_extra_patch_data(self):
-        p = Person(
-            name="test", _key="12312", dob=date(year=2016, month=9, day=12)
-        )
-        np = Person._load({"name": "Wonder"}, instance=p)
-
-        assert p.name == "test"
-        assert np.name == "Wonder"
-        assert np._key == "12312"
-
-    def test_10_dirty_fields(self):
-        p1 = Person(
-            name="test", _key="12312", dob=date(year=2016, month=9, day=12)
-        )
-        p2 = Person._load(
-            {
-                "_key": "37405-4564665-7",
-                "dob": "2016-09-12",
-                "name": "Kashif Iftikhar",
-            }
-        )
-        self.assert_has_same_items(
-            p1._dirty, ["name", "_key", "dob", "age", "is_staff", "hobby", "favorite_hobby"]
-        )
-        self.assert_has_same_items(
-            p2._dirty, ["name", "_key", "dob", "age", "is_staff", "hobby", "favorite_hobby"]
-        )
-
-        p1._dirty.clear()
-        p1.name = "test"  # change name, even if the same as before!
-        self.assert_has_same_items(p1._dirty, ["name"])
-
-    def test_11_key_field(self):
-        class Person(Collection):
-            __collection__ = "persons"
-            _key_field = "name"
-
-            name = String(required=True, allow_none=False)
-            age = Integer(allow_none=True, missing=None)
-
-        p1 = Person(_key="abc", age=30)
-        assert p1._key == "abc"
-        assert p1._key == p1.name
-        assert p1.age == 30
-
-        p2 = Person()
-        p2.name = "xyz"
-        assert p2._key == p2.name
-
-        p3 = Person(name="JL")
-        assert p3._key == p3.name
-
-    def test_12_nested_field(self):
-        pd = {
-            "_key": "37405-4564665-7",
-            "dob": "2016-09-12",
-            "name": "Kashif Iftikhar",
-            "favorite_hobby":
-                {
-                    "name": "Programming",
-                    "type": "Challenging"
-                }
-        }
-        new_person = Person._load(pd)
-        self.assertEqual("37405-4564665-7", new_person._key)
-        self.assertEqual("Kashif Iftikhar", new_person.name)
-        self.assertEqual(date(year=2016, month=9, day=12), new_person.dob)
-        self.assertEqual("37405-4564665-7", new_person._key)
-        self.assertEqual("Programming", new_person.favorite_hobby.name)
-        self.assertEqual("Challenging", new_person.favorite_hobby.type)
-
-    def test_13_nested_list_field(self):
-        pd = {
-            "_key": "37405-4564665-7",
-            "dob": "2016-09-12",
-            "name": "Kashif Iftikhar",
-            "hobby": [
-                {
-                    "name": "Skydiving",
-                    "type": "Extreme",
-                    "equipment": [{
-                        "name": "parachute",
-                        "price": 2000.00
-                    }],
-                },
-                {
-                    "name": "Knitting",
-                    "type": "Relaxing"
-                },
-
-            ]
-        }
-        
-        new_person = Person._load(pd)
-        self.assertEqual("37405-4564665-7", new_person._key)
-        self.assertEqual("Kashif Iftikhar", new_person.name)
-        self.assertEqual(date(year=2016, month=9, day=12), new_person.dob)
-        self.assertEqual("37405-4564665-7", new_person._key)
-
-        self.assertEqual(2, len(new_person.hobby))
-        skydiving = new_person.hobby[0]
-        self.assertEqual(skydiving.name, "Skydiving")
-        self.assertEqual(skydiving.type, "Extreme")
-        self.assertEqual(len(skydiving.equipment), 1)
-        self.assertEqual(skydiving.equipment[0].name, "parachute")
-        self.assertEqual(skydiving.equipment[0].price, 2000.00)
-
-        knitting = new_person.hobby[1]
-        self.assertEqual(knitting.name, "Knitting")
-        self.assertEqual(knitting.type, "Relaxing")
-
-    def test_14_class_inheritance(self):
-        class SuperCar(Car):
-            __collection__ = "supercar"
-
-        #shitty_audi = Car(make="Audi", model="RS4", year="2022")
-
-        bmw_m3_e92 = SuperCar._load({"make": "BMW", "model": "M3 E92", "year":"2009"})
-
-        print(SuperCar._cls_schema.__name__)
-
-        self.assertEqual(bmw_m3_e92.__collection__, "supercar")
-        
+# def test_json_schema(self):
+#     assert False
