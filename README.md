@@ -29,57 +29,6 @@ test_db = client.db('test', username='test', password='test')
 db = Database(test_db)
 ```
 
-Using a Connection Pool
------------------------
-
-Note: This is deprecated since python arango version 5.0. Since now the base
-library supports the hosts parameter. This will be removed in future versions.
-Users should instead use the pool in ArangoClient like:
-
-.. code-block:: python
-
-  client = ArangoClient(
-    hosts=['http://host1:8529', 'http://host2:8529'],
-    host_resolver='roundrobin'
-  )
-
-
-Connection pools allow using multiple connections for accessing the database.
-Though these can be used on a single machine setup, they are more useful to use
-with arango clusters.
-
-Connection pools support the same methods and properties that the Database class
-does. So they can be used interchangeably with Database.
-
-.. code-block:: python
-
-    from arango import ArangoClient
-    from arango_orm import ConnectionPool
-
-    client1 = ArangoClient(protocol='http', host='localhost', port=8529)
-    client2 = ArangoClient(protocol='http', host='127.0.0.1', port=8529)
-
-    db = ConnectionPool([client1, client2], 'test', 'test', 'test')
-
-
-Working With Collections
--------------------------
-
-First we need to define data models (similar to SQLAlchemy's models) to specify what data our collection(s) will contain and how to marshal it
-
-.. code-block:: python
-
-    from arango_orm import Collection
-    from arango_orm.fields import String, Date
-
-    class Student(Collection):
-
-        __collection__ = 'students'
-        _index = [{'type': 'hash', 'fields': ['name'], 'unique': True}]
-
-        _key = String(required=True)  # registration number
-        name = String(required=True, allow_none=False)
-        dob = Date()
 
 
 Create Collection in the Database

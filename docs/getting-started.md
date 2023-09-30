@@ -119,6 +119,12 @@ db.delete(s)
 students = db.query(Student).all()
 ```
 
+## Delete all records in collection
+
+```python
+db.query(Student).delete()
+```
+
 ## Get first record matching the query
 
 ```python
