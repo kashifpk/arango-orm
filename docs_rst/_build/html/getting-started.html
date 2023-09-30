@@ -1,0 +1,310 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Getting started &#8212; arango-orm 0.6 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Python ORM Layer For ArangoDB" href="index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="getting-started">
+<h1>Getting started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h1>
+<p>Make sure you have access to an arangodb database.</p>
+<div class="section" id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
+<p>Install the package</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python -m pip install arango-orm
+</pre></div>
+</div>
+</div>
+<div class="section" id="connecting-to-a-database">
+<h2>Connecting to a Database<a class="headerlink" href="#connecting-to-a-database" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">arango</span> <span class="kn">import</span> <span class="n">ArangoClient</span>
+<span class="kn">from</span> <span class="nn">arango_orm</span> <span class="kn">import</span> <span class="n">Database</span>
+
+<span class="n">client</span> <span class="o">=</span> <span class="n">ArangoClient</span><span class="p">(</span><span class="n">hosts</span><span class="o">=</span><span class="s1">&#39;http://localhost:8529&#39;</span><span class="p">)</span>
+<span class="n">test_db</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">db</span><span class="p">(</span><span class="s1">&#39;test&#39;</span><span class="p">,</span> <span class="n">username</span><span class="o">=</span><span class="s1">&#39;test&#39;</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="s1">&#39;test&#39;</span><span class="p">)</span>
+
+<span class="n">db</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="n">test_db</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="working-with-collections">
+<h2>Working With Collections<a class="headerlink" href="#working-with-collections" title="Permalink to this headline">¶</a></h2>
+<p>First we need to define data models (similar to SQLAlchemy’s models) to specify what data our collection will contain and how to marshal it.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">arango_orm</span> <span class="kn">import</span> <span class="n">Collection</span>
+<span class="kn">from</span> <span class="nn">arango_orm.fields</span> <span class="kn">import</span> <span class="n">String</span><span class="p">,</span> <span class="n">Date</span>
+
+<span class="k">class</span> <span class="nc">Student</span><span class="p">(</span><span class="n">Collection</span><span class="p">):</span>
+
+    <span class="n">__collection__</span> <span class="o">=</span> <span class="s1">&#39;students&#39;</span>
+
+    <span class="n">_key</span> <span class="o">=</span> <span class="n">String</span><span class="p">(</span><span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># registration number</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">String</span><span class="p">(</span><span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">dob</span> <span class="o">=</span> <span class="n">Date</span><span class="p">()</span>
+</pre></div>
+</div>
+<div class="section" id="create-collection-in-the-database">
+<h3>Create Collection in the Database<a class="headerlink" href="#create-collection-in-the-database" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">db</span><span class="o">.</span><span class="n">create_collection</span><span class="p">(</span><span class="n">Student</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="add-records">
+<h3>Add Records<a class="headerlink" href="#add-records" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">date</span>
+<span class="n">s</span> <span class="o">=</span> <span class="n">Student</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;test&#39;</span><span class="p">,</span> <span class="n">_key</span><span class="o">=</span><span class="s1">&#39;12312&#39;</span><span class="p">,</span> <span class="n">dob</span><span class="o">=</span><span class="n">date</span><span class="p">(</span><span class="n">year</span><span class="o">=</span><span class="mi">2016</span><span class="p">,</span> <span class="n">month</span><span class="o">=</span><span class="mi">9</span><span class="p">,</span> <span class="n">day</span><span class="o">=</span><span class="mi">12</span><span class="p">))</span>
+<span class="n">db</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">_id</span><span class="p">)</span>  <span class="c1"># students/12312</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="get-total-records-in-the-collection">
+<h3>Get Total Records in the Collection<a class="headerlink" href="#get-total-records-in-the-collection" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">db</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Student</span><span class="p">)</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="get-record-by-key">
+<h3>Get Record By Key<a class="headerlink" href="#get-record-by-key" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">s</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Student</span><span class="p">)</span><span class="o">.</span><span class="n">by_key</span><span class="p">(</span><span class="s1">&#39;12312&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="update-a-record">
+<h3>Update a Record<a class="headerlink" href="#update-a-record" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">s</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Student</span><span class="p">)</span><span class="o">.</span><span class="n">by_key</span><span class="p">(</span><span class="s1">&#39;12312&#39;</span><span class="p">)</span>
+<span class="n">s</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;Anonymous&#39;</span>
+<span class="n">db</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="delete-a-record">
+<h3>Delete a Record<a class="headerlink" href="#delete-a-record" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">s</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Student</span><span class="p">)</span><span class="o">.</span><span class="n">by_key</span><span class="p">(</span><span class="s1">&#39;12312&#39;</span><span class="p">)</span>
+<span class="n">db</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="get-all-records-in-a-collection">
+<h3>Get All Records in a Collection<a class="headerlink" href="#get-all-records-in-a-collection" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">students</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Student</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="get-first-record-matching-the-query">
+<h3>Get First Record Matching the Query<a class="headerlink" href="#get-first-record-matching-the-query" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">first_student</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Student</span><span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="filter-records">
+<h3>Filter Records<a class="headerlink" href="#filter-records" title="Permalink to this headline">¶</a></h3>
+<p>Using bind parameters (recommended)</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">records</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Student</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="s2">&quot;name==@name&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;Anonymous&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Using plain condition strings (not safe in case of unsanitized user supplied input)</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">records</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Student</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="s2">&quot;name==&#39;Anonymous&#39;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="filter-using-or">
+<h3>Filter Using OR<a class="headerlink" href="#filter-using-or" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Get all documents where student name starts with A or B</span>
+<span class="n">records</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Student</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+            <span class="s2">&quot;LIKE(rec.name, &#39;A%&#39;)&quot;</span><span class="p">,</span> <span class="n">prepend_rec_name</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+            <span class="s2">&quot;LIKE(rec.name, &#39;B%&#39;)&quot;</span><span class="p">,</span> <span class="n">prepend_rec_name</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">_or</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="filter-sort-and-limit">
+<h3>Filter, Sort and Limit<a class="headerlink" href="#filter-sort-and-limit" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Last 5 students with names starting with A</span>
+<span class="n">records</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Student</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+            <span class="s2">&quot;LIKE(rec.name, &#39;A%&#39;)&quot;</span><span class="p">,</span> <span class="n">prepend_rec_name</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="s2">&quot;name DESC&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">limit</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+
+<span class="c1"># Query students with pagination (limit&amp;offset)</span>
+<span class="n">page_num</span><span class="p">,</span> <span class="n">per_page</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">10</span>
+<span class="n">page</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Student</span><span class="p">)</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="s2">&quot;name DESC&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">limit</span><span class="p">(</span><span class="n">per_page</span><span class="p">,</span> <span class="n">start_from</span><span class="o">=</span><span class="p">(</span><span class="n">page_num</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">per_page</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="fetch-only-some-fields">
+<h3>Fetch Only Some Fields<a class="headerlink" href="#fetch-only-some-fields" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">c</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Student</span><span class="p">)</span><span class="o">.</span><span class="n">limit</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">returns</span><span class="p">(</span><span class="s1">&#39;_key&#39;</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+</pre></div>
+</div>
+</div></blockquote>
+</div>
+<div class="section" id="update-multiple-records">
+<h3>Update Multiple Records<a class="headerlink" href="#update-multiple-records" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">db</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Student</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="s2">&quot;name==@name&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;Anonymous&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;Mr. Anonymous&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="delete-multiple-records">
+<h3>Delete Multiple Records<a class="headerlink" href="#delete-multiple-records" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">db</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Student</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="s2">&quot;LIKE(rec.name, &#39;test%&#39;)&quot;</span><span class="p">,</span> <span class="n">prepend_rec_name</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="delete-all-records">
+<h3>Delete All Records<a class="headerlink" href="#delete-all-records" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">db</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Student</span><span class="p">)</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="bulk-create-records">
+<h3>Bulk Create Records<a class="headerlink" href="#bulk-create-records" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">s1</span> <span class="o">=</span> <span class="n">Student</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;test1&#39;</span><span class="p">,</span> <span class="n">_key</span><span class="o">=</span><span class="s1">&#39;12345&#39;</span><span class="p">,</span> <span class="n">dob</span><span class="o">=</span><span class="n">date</span><span class="p">(</span><span class="n">year</span><span class="o">=</span><span class="mi">2016</span><span class="p">,</span> <span class="n">month</span><span class="o">=</span><span class="mi">9</span><span class="p">,</span> <span class="n">day</span><span class="o">=</span><span class="mi">12</span><span class="p">))</span>
+<span class="n">s2</span> <span class="o">=</span> <span class="n">Student</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;test2&#39;</span><span class="p">,</span> <span class="n">_key</span><span class="o">=</span><span class="s1">&#39;22346&#39;</span><span class="p">,</span> <span class="n">dob</span><span class="o">=</span><span class="n">date</span><span class="p">(</span><span class="n">year</span><span class="o">=</span><span class="mi">2015</span><span class="p">,</span> <span class="n">month</span><span class="o">=</span><span class="mi">9</span><span class="p">,</span> <span class="n">day</span><span class="o">=</span><span class="mi">12</span><span class="p">))</span>
+<span class="n">car1</span> <span class="o">=</span> <span class="n">Car</span><span class="p">(</span><span class="n">make</span><span class="o">=</span><span class="s2">&quot;Honda&quot;</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s2">&quot;Fiat&quot;</span><span class="p">,</span> <span class="n">year</span><span class="o">=</span><span class="mi">2010</span><span class="p">)</span>
+<span class="n">car2</span> <span class="o">=</span> <span class="n">Car</span><span class="p">(</span><span class="n">make</span><span class="o">=</span><span class="s2">&quot;Honda&quot;</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s2">&quot;Skoda&quot;</span><span class="p">,</span> <span class="n">year</span><span class="o">=</span><span class="mi">2015</span><span class="p">)</span>
+
+<span class="n">db</span><span class="o">.</span><span class="n">bulk_add</span><span class="p">(</span><span class="n">entity_list</span><span class="o">=</span><span class="p">[</span><span class="n">p_ref_10</span><span class="p">,</span> <span class="n">p_ref_11</span><span class="p">,</span> <span class="n">car1</span><span class="p">,</span> <span class="n">car2</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="bulk-update-records">
+<h3>Bulk Update Records<a class="headerlink" href="#bulk-update-records" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">p_ref1</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Person</span><span class="p">)</span><span class="o">.</span><span class="n">by_key</span><span class="p">(</span><span class="s2">&quot;12312&quot;</span><span class="p">)</span>
+<span class="n">p_ref2</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Person</span><span class="p">)</span><span class="o">.</span><span class="n">by_key</span><span class="p">(</span><span class="s2">&quot;12345&quot;</span><span class="p">)</span>
+<span class="n">p_ref1</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;Bruce&quot;</span>
+<span class="n">p_ref2</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;Eliza&quot;</span>
+<span class="n">db</span><span class="o">.</span><span class="n">bulk_update</span><span class="p">(</span><span class="n">entity_list</span><span class="o">=</span><span class="p">[</span><span class="n">p_ref1</span><span class="p">,</span> <span class="n">p_ref2</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="query-using-aql">
+<h3>Query Using AQL<a class="headerlink" href="#query-using-aql" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">db</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">Student</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;test1&#39;</span><span class="p">,</span> <span class="n">_key</span><span class="o">=</span><span class="s1">&#39;12345&#39;</span><span class="p">,</span> <span class="n">dob</span><span class="o">=</span><span class="n">date</span><span class="p">(</span><span class="n">year</span><span class="o">=</span><span class="mi">2016</span><span class="p">,</span> <span class="n">month</span><span class="o">=</span><span class="mi">9</span><span class="p">,</span> <span class="n">day</span><span class="o">=</span><span class="mi">12</span><span class="p">)))</span>
+<span class="n">db</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">Student</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;test2&#39;</span><span class="p">,</span> <span class="n">_key</span><span class="o">=</span><span class="s1">&#39;22346&#39;</span><span class="p">,</span> <span class="n">dob</span><span class="o">=</span><span class="n">date</span><span class="p">(</span><span class="n">year</span><span class="o">=</span><span class="mi">2015</span><span class="p">,</span> <span class="n">month</span><span class="o">=</span><span class="mi">9</span><span class="p">,</span> <span class="n">day</span><span class="o">=</span><span class="mi">12</span><span class="p">)))</span>
+
+<span class="n">students</span> <span class="o">=</span> <span class="p">[</span><span class="n">Student</span><span class="o">.</span><span class="n">_load</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">db</span><span class="o">.</span><span class="n">aql</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;FOR st IN students RETURN st&quot;</span><span class="p">)]</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">arango-orm</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Getting started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#connecting-to-a-database">Connecting to a Database</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#working-with-collections">Working With Collections</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#create-collection-in-the-database">Create Collection in the Database</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#add-records">Add Records</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#get-total-records-in-the-collection">Get Total Records in the Collection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#get-record-by-key">Get Record By Key</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#update-a-record">Update a Record</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#delete-a-record">Delete a Record</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#get-all-records-in-a-collection">Get All Records in a Collection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#get-first-record-matching-the-query">Get First Record Matching the Query</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#filter-records">Filter Records</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#filter-using-or">Filter Using OR</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#filter-sort-and-limit">Filter, Sort and Limit</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#fetch-only-some-fields">Fetch Only Some Fields</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#update-multiple-records">Update Multiple Records</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#delete-multiple-records">Delete Multiple Records</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#delete-all-records">Delete All Records</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#bulk-create-records">Bulk Create Records</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#bulk-update-records">Bulk Update Records</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#query-using-aql">Query Using AQL</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">Python ORM Layer For ArangoDB</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Kashif Iftikhar.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.1.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/getting-started.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

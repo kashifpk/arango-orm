@@ -2,10 +2,7 @@
 A wrapper around python-arango's database class adding some SQLAlchemy like ORM methods to it.
 """
 import logging
-from inspect import isclass
 
-from arango.database import Database as ArangoDatabase
-from .collections import CollectionBase
 from .exceptions import DocumentNotFoundError
 
 log = logging.getLogger(__name__)
@@ -27,6 +24,9 @@ class Query(object):
         self._limit = None
         self._limit_start_record = 0
         self._cursor_ttl = None
+
+    def __str__(self) -> str:
+        return self._make_aql() + '\n' + str(self._bind_vars)
 
     def count(self):
         "Return collection count"
@@ -63,7 +63,7 @@ class Query(object):
                 % (self._CollectionClass.__collection__, key)
             )
 
-        return self._CollectionClass._load(doc_dict, db=self._db)
+        return self._CollectionClass(**doc_dict, _db=self._db)
 
     def filter(
         self,
@@ -131,13 +131,13 @@ class Query(object):
 
     def returns(self, *fields):
         CC = self._CollectionClass
+
         self._return_fields = []
         for f in fields:
-            if f not in CC._fields:
+            if f not in CC.model_fields:
                 raise RuntimeError("field spec is denied: %s" % f)
-            fo = CC._fields[f]
-            fo.name = f
-            self._return_fields.append(fo)
+
+            self._return_fields.append(f)
 
         return self
 
@@ -200,17 +200,11 @@ class Query(object):
         # field name collisions
 
         update_clause = ""
-
-        # we'll need to marshal the update values using marshmallow so we create a new collection
-        # object with kwargs
-        up_obj = self._CollectionClass(**kwargs)
-
         for k, v in kwargs.items():
             update_clause += "{k}: @_up_{k},".format(k=k)
-            self._bind_vars["_up_" + k] = up_obj._dump(only=(k,))[k]
+            self._bind_vars["_up_" + k] = v
 
-        if len(update_clause) > 0:
-            update_clause = update_clause[:-1]
+        update_clause = update_clause.removesuffix(',')
 
         aql += (
             "\n UPDATE {_key: rec._key} WITH {%s} IN @@collection"
@@ -253,7 +247,7 @@ class Query(object):
         if self._return_fields is not None:
             aql += "\n RETURN {%s}" % ", ".join(
                 [
-                    "{0}: rec.{0}".format(f.data_key or f.name)
+                    "{0}: rec.{0}".format(f)
                     for f in self._return_fields
                 ]
             )
@@ -265,12 +259,13 @@ class Query(object):
         )
 
         for rec in results:
-            only = (
-                [f.name for f in self._return_fields]
-                if self._return_fields
-                else None
-            )
-            yield self._CollectionClass._load(rec, only=only, db=self._db)
+            if self._return_fields:
+                for k in rec.keys():
+                    if k not in self._return_fields:
+                        del rec[k]
+
+            # yield self._CollectionClass(**rec, only=only, db=self._db)
+            yield self._CollectionClass(_db=self._db, **rec)
 
     def all(self):
         return list(self.iterator())
@@ -305,6 +300,6 @@ class Query(object):
             }
 
         return [
-            self._CollectionClass._load(rec, db=self._db)
+            self._CollectionClass(_db=self._db, **rec)
             for rec in self._db.aql.execute(query, **kwargs)
         ]

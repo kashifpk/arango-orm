@@ -1,5 +1,3 @@
-from .database import Database
-from .connection_pool import ConnectionPool
-from .collections import CollectionBase, Collection, Relation
-from .graph import Graph, GraphConnection
-from .references import relationship, graph_relationship
+from .collections import Collection, Relation  # noqa=F401
+from .graph import Graph, GraphConnection  # noqa=F401
+from .database import Database  # noqa=F401

@@ -2,20 +2,17 @@ from pydoc import locate
 
 
 class Relationship(object):
-
     def __init__(self, col_class, field, **kwargs):
-
         # target_field='_key', uselist=True, order_by=None
         self._col_class = col_class
         self.field = field
-        self.target_field = kwargs.get('target_field', '_key')
-        self.uselist = kwargs['uselist']
-        self.order_by = kwargs.get('order_by', None)
-        self.cache = kwargs.get('cache', True)
+        self.target_field = kwargs.get("target_field", "_key")
+        self.uselist = kwargs["uselist"]
+        self.order_by = kwargs.get("order_by", None)
+        self.cache = kwargs.get("cache", True)
 
     @property
     def col_class(self):
-
         from .collections import Collection, Relation
 
         if isinstance(self._col_class, str):
@@ -29,7 +26,14 @@ class GraphRelationship(Relationship):
     pass
 
 
-def relationship(col_class_or_name, field, **kwargs):
+def relationship(
+    col_class_or_name,
+    field: str,
+    target_field: str = "_key",
+    uselist: bool | None = None,
+    order_by: str | None = None,
+    cache: bool = True
+):
     """
     Define a relationship to another document of same or different collection and making
     that document available as an instance property of the class where relationship is
@@ -48,14 +52,8 @@ def relationship(col_class_or_name, field, **kwargs):
         the database.
     """
 
-    # target_field='_key', uselist=None, order_by=None
-    target_field = kwargs.get('target_field', '_key')
-    uselist = kwargs.get('uselist', None)
-    order_by = kwargs.get('order_by', None)
-    cache = kwargs.get('cache', True)
-
     if uselist is None:
-        if '_key' == target_field:
+        if "_key" == target_field:
             uselist = False
         else:
             uselist = True

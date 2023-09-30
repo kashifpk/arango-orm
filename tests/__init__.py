@@ -1,76 +1,55 @@
-import os
-import unittest
 import logging
-
-from arango import ArangoClient
-
-from arango_orm.database import Database
-
-from .utils import lazy_property
 
 log = logging.getLogger(__name__)
 
 
-class TestBase(unittest.TestCase):
-    "Base class for test cases (unit tests)"
 
-    client = None
+def all_in(keys, collection) -> bool:
+    "Assert that all given keys are present in the given collection, dict, list or tuple"
 
-    @classmethod
-    def get_client(cls):
-        if cls.client is None:
-            arango_hosts = os.environ.get('ARANGO_HOSTS', "http://127.0.0.1:8529")
-            cls.client = ArangoClient(hosts=arango_hosts)
+    for key in keys:
+        if key not in collection:
+            return False
 
-        return cls.client
+    return True
 
-    @classmethod
-    def get_db(cls):
-        username = os.environ.get('ARANGO_USERNAME', "test")
-        password = os.environ.get('ARANGO_PASSWORD', "test")
-        database_name = os.environ.get('ARANGO_DATABASE', "test")
-        return cls.get_client().db(database_name, username=username, password=password)
 
-    @classmethod
-    def _get_db_obj(cls):
+def any_in(keys, collection) -> bool:
+    "Assert that any of the given keys is present in the given collection, dict, list or tuple"
 
-        test_db = cls.get_db()
-        db = Database(test_db)
+    for key in keys:
+        if key in collection:
+            return True
 
-        return db
+    raise False
 
-    @lazy_property
-    def db(self):
-        return TestBase._get_db_obj()
 
-    def assert_all_in(self, keys, collection, exp_to_raise=AssertionError):
-        "Assert that all given keys are present in the given collection, dict, list or tuple"
+def none_in(keys, collection) -> bool:
+    "Assert that none of the given keys is present in the given collection, dict, list or tuple"
 
-        for key in keys:
-            if key not in collection:
-                raise exp_to_raise
+    for key in keys:
+        if key in collection:
+            return False
 
-        return True
+    return True
 
-    def assert_any_in(self, keys, collection, exp_to_raise=AssertionError):
-        "Assert that any of the given keys is present in the given collection, dict, list or tuple"
 
-        for key in keys:
-            if key in collection:
-                return True
+def has_same_items(left, right) -> bool:
+    if not set(left) == set(right):
+        return False
+    return True
 
-        raise exp_to_raise
 
-    def assert_none_in(self, keys, collection, exp_to_raise=AssertionError):
-        "Assert that none of the given keys is present in the given collection, dict, list or tuple"
+def verify_property_values(obj, **kwargs) -> bool:
+    "Verify that properties (keys in kwargs) exist and contain correct value (values in kwargs)"
 
-        for key in keys:
-            if key in collection:
-                raise exp_to_raise
+    for k, v in kwargs.items():
+        if hasattr(obj, k) is False:
+            log.debug(f"Property {k} not present")
+            return False
 
-        return True
+        if getattr(obj, k) != v:
+            log.debug(f"Property {k} value incorrect. {getattr(obj, k)}!={v}")
+            return False
 
-    def assert_has_same_items(self, left, right, exp_to_raise=AssertionError):
-        if not set(left) == set(right):
-            raise exp_to_raise
-        return True
+    return True

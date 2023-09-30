@@ -1,0 +1,157 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python ORM Layer For ArangoDB &#8212; arango-orm 0.6 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Getting started" href="getting-started.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="python-orm-layer-for-arangodb">
+<h1>Python ORM Layer For ArangoDB<a class="headerlink" href="#python-orm-layer-for-arangodb" title="Permalink to this headline">¶</a></h1>
+<p><strong>arango_orm</strong> is a python ORM layer inspired by SQLAlchemy but aimed to work
+with the multi-model database ArangoDB. It supports accessing both collections
+and graphs using the ORM. The actual communication with the database is done
+using <strong>python-arango</strong> (the database driver for accessing arangodb from
+python) and object serialization and de-serialization is handled using
+<strong>marshmallow</strong>.</p>
+<div class="toctree-wrapper compound">
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="getting-started.html#installation">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="getting-started.html#connecting-to-a-database">Connecting to a Database</a></li>
+<li class="toctree-l2"><a class="reference internal" href="getting-started.html#working-with-collections">Working With Collections</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="getting-started.html#create-collection-in-the-database">Create Collection in the Database</a></li>
+<li class="toctree-l3"><a class="reference internal" href="getting-started.html#add-records">Add Records</a></li>
+<li class="toctree-l3"><a class="reference internal" href="getting-started.html#get-total-records-in-the-collection">Get Total Records in the Collection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="getting-started.html#get-record-by-key">Get Record By Key</a></li>
+<li class="toctree-l3"><a class="reference internal" href="getting-started.html#update-a-record">Update a Record</a></li>
+<li class="toctree-l3"><a class="reference internal" href="getting-started.html#delete-a-record">Delete a Record</a></li>
+<li class="toctree-l3"><a class="reference internal" href="getting-started.html#get-all-records-in-a-collection">Get All Records in a Collection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="getting-started.html#get-first-record-matching-the-query">Get First Record Matching the Query</a></li>
+<li class="toctree-l3"><a class="reference internal" href="getting-started.html#filter-records">Filter Records</a></li>
+<li class="toctree-l3"><a class="reference internal" href="getting-started.html#filter-using-or">Filter Using OR</a></li>
+<li class="toctree-l3"><a class="reference internal" href="getting-started.html#filter-sort-and-limit">Filter, Sort and Limit</a></li>
+<li class="toctree-l3"><a class="reference internal" href="getting-started.html#fetch-only-some-fields">Fetch Only Some Fields</a></li>
+<li class="toctree-l3"><a class="reference internal" href="getting-started.html#update-multiple-records">Update Multiple Records</a></li>
+<li class="toctree-l3"><a class="reference internal" href="getting-started.html#delete-multiple-records">Delete Multiple Records</a></li>
+<li class="toctree-l3"><a class="reference internal" href="getting-started.html#delete-all-records">Delete All Records</a></li>
+<li class="toctree-l3"><a class="reference internal" href="getting-started.html#bulk-create-records">Bulk Create Records</a></li>
+<li class="toctree-l3"><a class="reference internal" href="getting-started.html#bulk-update-records">Bulk Update Records</a></li>
+<li class="toctree-l3"><a class="reference internal" href="getting-started.html#query-using-aql">Query Using AQL</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api-reference.html">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api-reference.html#collections">Collections</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+</ul>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="#">arango-orm</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api-reference.html">API Reference</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="#">Documentation overview</a><ul>
+      <li>Next: <a href="getting-started.html" title="next chapter">Getting started</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Kashif Iftikhar.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.1.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
