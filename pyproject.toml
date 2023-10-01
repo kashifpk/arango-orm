@@ -8,9 +8,9 @@ version = "1.0.0"
 description = "A SQLAlchemy like ORM implementation for arangodb"
 authors = ["Kashif Iftikhar <kashif@compulife.com.pk>"]
 license = "GNU General Public License v2 (GPLv2)"
-homepage = "https://arango-orm.readthedocs.io/en/latest/"
+homepage = "https://kashifpk.github.io/arango-orm"
 repository = "https://github.com/kashifpk/arango-orm"
-readme = "README.rst"
+readme = "README.md"
 packages = [{include="arango_orm"}]
 
 [tool.poetry.dependencies]
