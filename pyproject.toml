@@ -4,11 +4,11 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "arango-orm"
-version = "1.0.0"
+version = "1.0.1"
 description = "A SQLAlchemy like ORM implementation for arangodb"
 authors = ["Kashif Iftikhar <kashif@compulife.com.pk>"]
 license = "GNU General Public License v2 (GPLv2)"
-homepage = "https://kashifpk.github.io/arango-orm"
+homepage = "https://arango-orm.compulife.com.pk"
 repository = "https://github.com/kashifpk/arango-orm"
 readme = "README.md"
 packages = [{include="arango_orm"}]
@@ -24,6 +24,7 @@ black = "^23.3.0"
 ipython = "^8.15.0"
 mkdocs = "^1.5.3"
 mkdocs-material = "^9.4.2"
+mkdocstrings = {extras = ["python"], version = "^0.23.0"}
 
 
 [tool.poetry.group.test.dependencies]

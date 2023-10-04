@@ -1,94 +1,81 @@
-# from __future__ import (absolute_import, division, print_function,
-#                         unicode_literals)
+import logging
+from datetime import date
+from unittest.mock import create_autospec, Mock
 
-# import sys
-# from datetime import date
-# from arango_orm.event import dispatch, listen, listens_for
-# from arango_orm import Collection
-# if sys.version >= '3.6':
-#     # Since assert_called_once is wew in version 3.6
-#     from unittest.mock import create_autospec, Mock
-# else:
-#     from mock import create_autospec, Mock
+from arango_orm.event import dispatch, listen, listens_for
 
-# from . import TestBase
-# from .data import Person
+from .fixtures import test_db, ensure_person_collection, Person  # noqa: F401
+
+log = logging.getLogger(__name__)
 
 
-# class BasePerson(object):
-#     pass
+class BasePerson(object):
+    pass
 
 
-# class MyPerson(BasePerson):
-#     def __init__(self, name):
-#         self.name = name
+class MyPerson(BasePerson):
+    def __init__(self, name):
+        self.name = name
 
-#     def sleep(self):
-#         dispatch(self, 'gone_sleep')
+    def sleep(self):
+        dispatch(self, "gone_sleep")
 
 
-# class TestCollection(TestBase):
-#     @classmethod
-#     def setUpClass(cls):
-#         db = cls._get_db_obj()
-#         db.create_collection(Person)
+def _gone_sleep_notification(target, event, *args, **kwargs):
+    log.debug("{0} has got in sleep~".format(target.name))
 
-#     @classmethod
-#     def tearDownClass(cls):
-#         db = cls._get_db_obj()
-#         db.drop_collection(Person)
 
-#     def _gone_sleep_notification(self, target, event, *args, **kwargs):
-#         print('{0} has got in sleep~'.format(target.name))
+def test_event_works():
+    mock_listener = create_autospec(_gone_sleep_notification)
 
-#     def test_event_works(self):
-#         mock_listener = create_autospec(self._gone_sleep_notification)
+    listen(MyPerson, "gone_sleep", _gone_sleep_notification)
+    listen(MyPerson, "gone_sleep", mock_listener)
 
-#         listen(MyPerson, 'gone_sleep', self._gone_sleep_notification)
-#         listen(MyPerson, 'gone_sleep', mock_listener)
+    p = MyPerson("Wonder")
+    p.sleep()
 
-#         p = MyPerson('Wonder')
-#         p.sleep()
+    mock_listener.assert_called_once_with(p, "gone_sleep")
 
-#         mock_listener.assert_called_once_with(p, 'gone_sleep')
 
-#     def test_listen_by_base_class(self):
-#         mock = Mock()
+def test_listen_by_base_class():
+    mock = Mock()
 
-#         listen(BasePerson, 'gone_sleep', mock)
+    listen(BasePerson, "gone_sleep", mock)
 
-#         p = MyPerson('James')
-#         p.sleep()
+    p = MyPerson("James")
+    p.sleep()
 
-#         mock.assert_called_once()  # only available in python 3.6 for builtin unittest.mock
+    mock.assert_called_once()  # only available in python 3.6 for builtin unittest.mock
 
-#     def test_listens_for_decorator(self):
-#         mock = Mock()
 
-#         @listens_for(MyPerson, 'gone_sleep')
-#         def gone_sleep_handler(*args, **kwargs):
-#             mock(*args, **kwargs)
+def test_listens_for_decorator():
+    mock = Mock()
 
-#         p = MyPerson('Wonder')
-#         p.sleep()
-#         mock.assert_called_once()  # only available in python 3.6 for builtin unittest.mock
+    @listens_for(MyPerson, "gone_sleep")
+    def gone_sleep_handler(*args, **kwargs):
+        mock(*args, **kwargs)
 
-#     def test_orm_events(self):
-#         ma, mu, md = Mock(), Mock(), Mock()
+    p = MyPerson("Wonder")
+    p.sleep()
+    mock.assert_called_once()  # only available in python 3.6 for builtin unittest.mock
 
-#         listen(Person, 'post_add', ma)
-#         listen(Person, 'post_update', mu)
-#         listen(Person, 'post_delete', md)
 
-#         p = Person(name='Wonder', _key='10000', dob=date(year=2016, month=9, day=12))
+def test_orm_events(test_db, ensure_person_collection):  # noqa: F811
+    ma, mu, md = Mock(), Mock(), Mock()
 
-#         res = self.db.add(p)
-#         ma.assert_called_once_with(p, 'post_add', db=self.db, result=res)
+    listen(Person, "post_add", ma)
+    listen(Person, "post_update", mu)
+    listen(Person, "post_delete", md)
 
-#         res = self.db.update(p)
-#         mu.assert_called_once_with(p, 'post_update', db=self.db, result=res)
-#         res = self.db.update(p)
-#         assert mu.call_count == 2
+    p = Person(name="Wonder", _key="10000", dob=date(year=2016, month=9, day=12))
 
-#         res = self.db.delete(p)
-#         md.assert_called_once_with(p, 'post_delete', db=self.db, result=res)
+    res = test_db.add(p)
+    ma.assert_called_once_with(p, "post_add", db=test_db, result=res)
+
+    res = test_db.update(p)
+    mu.assert_called_once_with(p, "post_update", db=test_db, result=res)
+    res = test_db.update(p)
+    assert mu.call_count == 2
+
+    res = test_db.delete(p)
+    md.assert_called_once_with(p, "post_delete", db=test_db, result=res)

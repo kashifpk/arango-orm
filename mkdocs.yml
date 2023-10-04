@@ -3,6 +3,9 @@ site_url: https://arango-orm.readthedocs.io/en/latest/
 nav:
   - Home: index.md
   - Getting Started: getting-started.md
+  - Collection Inheritance: collection-inheritance.md
+  - Events: events.md
+  - API Reference: reference.md
 theme:
   name: material
   palette:
@@ -31,3 +34,6 @@ markdown_extensions:
   - pymdownx.snippets
   - pymdownx.superfences
 
+plugins:
+- search
+- mkdocstrings

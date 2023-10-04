@@ -17,10 +17,10 @@ log = logging.getLogger(__name__)
 
 @pytest.fixture(scope="session", autouse=True)
 def setup_test_database(request):
-    username = os.environ.get("ARANGO_USERNAME", "kashif")
-    password = os.environ.get("ARANGO_PASSWORD", "compulife")
+    username = os.environ.get("ARANGO_USERNAME", "test")
+    password = os.environ.get("ARANGO_PASSWORD", "test")
     arango_hosts = os.environ.get("ARANGO_HOSTS", "http://127.0.0.1:8529")
-    database_name = os.environ.get("ARANGO_DATABASE", "arango_orm_v1_test")
+    database_name = os.environ.get("ARANGO_DATABASE", "test")
 
     db = ArangoClient(hosts=arango_hosts).db(database_name, username=username, password=password)
 

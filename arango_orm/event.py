@@ -12,6 +12,7 @@ _registrars = defaultdict(lambda: defaultdict(list))
 
 
 def dispatch(target, event, *args, **kwargs):
+    "Fire given event"
     by_event = _registrars[event]
     for t in by_event.keys():
         if isinstance(target, t):
@@ -20,6 +21,7 @@ def dispatch(target, event, *args, **kwargs):
 
 
 def listen(target, event, fn, *args, **kwargs):
+    "Register fn to listen for event"
     events = [event] if isinstance(event, six.text_type) else event
 
     for event in events:
@@ -27,6 +29,7 @@ def listen(target, event, fn, *args, **kwargs):
 
 
 def listens_for(target, event, *args, **kwargs):
+    "Decorator to register fn to listen for event"
     def decorator(fn):
         listen(target, event, fn, *args, **kwargs)
         return fn

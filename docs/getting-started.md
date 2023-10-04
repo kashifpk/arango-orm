@@ -14,7 +14,7 @@ db = Database(test_db)
 
 ## Defining models
 
-Define models to represent your data. Models extend the `Collection` base class which is an extension of the pydantic `BaseModel` class. So all functionality provided by pydantic models is available. The same model class can be used for ORM and for defining API request/response structures.
+Define models to represent your data. Models extend the [Collection][arango_orm.collections.Collection] base class which is an extension of the pydantic `BaseModel` class. So all functionality provided by pydantic models is available. The same model class can be used for ORM and for defining API request/response structures.
 
 ```python
 from datetime import date

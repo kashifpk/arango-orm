@@ -12,6 +12,7 @@ from arango_orm.database import Database
 from arango_orm import Relation, Graph
 
 from .data import (
+    Citizen,
     UniversityGraph,
     Person,
     Car,
@@ -52,6 +53,13 @@ def test_db(arango_client: ArangoClient) -> Generator[Database, Any, None]:
     yield db
 
     db = None
+
+
+@pytest.fixture
+def ensure_citizen_collection(test_db: Database):
+    test_db.create_collection(Citizen)
+    yield
+    test_db.drop_collection(Citizen)
 
 
 @pytest.fixture

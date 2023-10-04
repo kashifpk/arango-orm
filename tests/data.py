@@ -205,7 +205,26 @@ specializations_data = [
 # # GRAPH 'university_graph'
 # # RETURN p
 
-# # Inheritance data
+# Inheritance data
+class Citizen(Collection):
+    __collection__ = 'citizens'
+
+    key_: str = Field(..., alias="_key")  # citizen identification number
+    name: str
+    dob: date
+
+
+class Scientist(Citizen):
+
+    degress: list[str]
+    research_field: str
+
+
+class Employee(Citizen):
+
+    base_salary: int | None = None
+
+
 # class Owner(Collection):
 #     __collection__ = "owner"
 
