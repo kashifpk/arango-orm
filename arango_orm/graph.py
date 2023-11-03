@@ -284,7 +284,7 @@ class Graph(object):
 
         return doc_obj
 
-    def expand(self, doc_obj, direction="any", depth=1, only=None):
+    def expand(self, doc_obj, direction="any", depth=1, only=None, condition:str = None):
         """
         Graph traversal.
 
@@ -297,6 +297,10 @@ class Graph(object):
         documents (vertices) that should be fetched.
         Any vertices found in traversal that don't belong to the specified
         collection names given in this parameter will be ignored.
+
+        :param condition: String containing conditions in JS format. If only is provided
+        then these conditions are merged with only using logical AND. Within the condition
+        3 objects (config, vertex, path) are available for use within the traversal context.
         """
         assert direction in ("any", "inbound", "outbound")
 
@@ -304,13 +308,14 @@ class Graph(object):
         doc_id = doc_obj.id_
         doc_obj._relations = {}  # clear any previous relations
         filter_func = None
+        c_str = ""
+
         if only:
             if not isinstance(only, (list, tuple)):
                 only = [
                     only,
                 ]
 
-            c_str = ""
             for c in only:
                 if not isinstance(c, str) and hasattr(c, "__collection__"):
                     c = c.__collection__
@@ -320,6 +325,13 @@ class Graph(object):
             if c_str:
                 c_str = c_str[:-3]
 
+        if condition:
+            if c_str:
+                c_str = c_str + ' && ' + condition
+            else:
+                c_str = condition
+
+        if c_str:
             filter_func = """
                 if ({condition})
                     {{ return; }}

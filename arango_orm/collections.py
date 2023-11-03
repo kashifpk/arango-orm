@@ -195,7 +195,14 @@ class Collection(BaseModel):
         round_trip: bool = False,
         warnings: bool = True,
     ) -> dict[str, Any]:
+
         exclude = exclude or set()
+        exclude_fields = {'_db', '_refs'}
+        if exclude:
+            exclude = set(exclude)
+            exclude.update(exclude_fields)
+        else:
+            exclude = exclude_fields
 
         for fname in self.model_fields:
             if fname not in self._fields:

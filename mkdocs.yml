@@ -5,6 +5,7 @@ nav:
   - Getting Started: getting-started.md
   - Collection Inheritance: collection-inheritance.md
   - Events: events.md
+  - Graphs: graphs.md
   - API Reference: reference.md
 theme:
   name: material
