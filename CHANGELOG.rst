@@ -1,10 +1,36 @@
 CHANGES
 =======
 
+Version 1.0.2
+-------------
+
+- Proper handling of `_rev` values. Adding or updating documents loads/reloads `key_` and `rev_` from the db
+  to keep the collection object consistent with backend. Without it subsequent updates on the same object would
+  fail due to `_rev` mismatch.
+- Bugfix for `relationship` function (so it uses `key_` instead of `_key`)
+
+Version 1.0.1
+-------------
+
+- Support for providing filter conditions for Graph.expand
+
+  ```python
+  graph.expand(condition="vertex.city == 'Gotham'")
+  ```
+
 Version 1.0.0
 -------------
 
-
+- Conversion from marshmallow to pydantic 2.x (Backward incompatible)
+- Use pydantic style model definitions. Model classes still inherit from `Collection` or
+  `Relation` classes but these classes are now derived from pydantic's `BaseModel` class and
+  provide some additional functionality related to ORM.
+- `Collection._dump` and `Collection._load` methods are removed in favor of already present
+  pydantic methods for the same tasks. Use `Collection.model_dump` and `Collection(**kwargs)`
+  for dumping and loading data from models respectively.
+- Due to how pydantic works, built-in collection/relation fields `_key`, `_from` and `_to` must
+  be defined as `key_`, `from_` and `to_` in models. However `@property` getters and setters are
+  present to allow accessing and setting these using the built-in names. See examples for deatils.
 
 Version 0.7.1
 -------------

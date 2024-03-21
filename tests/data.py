@@ -29,6 +29,7 @@ class Person(Collection):
     favorite_hobby: Hobby | None = None
     # hobby = List(Nested(Hobby.schema()), required=False, allow_none=True, default=None)
     cars: list["Car"] = relationship(__name__ + ".Car", "key_", target_field="owner_key")
+    cars_no_cache: list["Car"] = relationship(__name__ + ".Car", "key_", target_field="owner_key", cache=False)
 
     @property
     def is_adult(self):
@@ -49,6 +50,7 @@ class Car(Collection):
     owner_key: str | None = None
 
     owner: Person = relationship(Person, "owner_key")
+    owner_no_cache: Person = relationship(Person, "owner_key", cache=False)
 
     def __str__(self):
         return "<Car({} - {} - {})>".format(self.make, self.model, self.year)

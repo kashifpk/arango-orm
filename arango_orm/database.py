@@ -49,7 +49,6 @@ class Database(ArangoDatabase):
         else:
             CollectionClass = col.__class__
 
-
         if CollectionClass is Collection or issubclass(CollectionClass, Collection):
             return col.__collection__ is not None
 
@@ -67,12 +66,23 @@ class Database(ArangoDatabase):
         else:
             CollectionClass = col.__class__
 
-
         if CollectionClass is Relation or issubclass(CollectionClass, Relation):
             return col.__collection__ is not None
 
         return False
 
+    def _entity_pre_process(self, data: dict) -> None:
+        "Clean up data dict before add/update into the db."
+        for k in ("_key", "_rev"):
+            if k in data and data[k] is None:
+                del data[k]
+
+    def _entity_post_process(self, entity: Collection, result: dict) -> None:
+        "Update entity after add/update."
+        for k in (("key_", "_key"), ("rev_", "_rev")):
+            if result.get(k[1], None) is not None:
+                setattr(entity, k[0], result[k[1]])
+                entity._dirty.remove(k[0])
 
     def has_collection(self, collection):
         "Confirm that the given collection class or collection name exists in the db"
@@ -98,8 +108,8 @@ class Database(ArangoDatabase):
         if "col_args" in collection._collection_config:
             col_args = collection._collection_config["col_args"]
 
-        if self._verify_relation(collection) and 'edge' not in col_args:
-            col_args['edge'] = True
+        if self._verify_relation(collection) and "edge" not in col_args:
+            col_args["edge"] = True
 
         col = super(Database, self).create_collection(name=collection.__collection__, **col_args)
 
@@ -160,16 +170,15 @@ class Database(ArangoDatabase):
                     return self.update(entity)
 
         data_json = entity.model_dump(mode="json", by_alias=True)
-        if "_key" in data_json and data_json["_key"] is None:
-            del data_json["_key"]
 
+        self._entity_pre_process(data_json)
         dispatch(entity, "pre_add", db=self)
 
         collection = self._db.collection(entity.__collection__)
         setattr(entity, "_db", self)
         res = collection.insert(data_json)
-        if not getattr(entity, "key_", None) and "_key" in res:
-            setattr(entity, "key_", res["_key"])
+
+        self._entity_post_process(entity, res)
         entity._dirty.clear()
 
         dispatch(entity, "post_add", db=self, result=res)
@@ -195,17 +204,10 @@ class Database(ArangoDatabase):
                 if not entity._dirty:
                     return entity
 
-                data = {
-                    k: v
-                    for k, v in data.items()
-                    if k == "_key" or k in entity._dirty
-                }
+                data = {k: v for k, v in data.items() if k == "_key" or k in entity._dirty}
 
             # Clean data dict
-            for k in ('_key', '_rev'):
-                if k in data and data[k] is None:
-                    del data[k]
-
+            self._entity_pre_process(data)
             dispatch(entity, "pre_update", db=self)
 
             collection_dict = collections.get(entity.__collection__, dict())
@@ -231,10 +233,9 @@ class Database(ArangoDatabase):
             res = collection_model.insert_many(entity_dict_list, **kwargs)
             for num, entity in enumerate(entity_obj_list, start=0):
                 entity._dirty.clear()
-                log.debug(f">>> {entity} | {res[num]}")
-                if not getattr(entity, "key_", None) and "_key" in res[num]:
-                    setattr(entity, "key_", res[num]["_key"])
+                self._entity_post_process(entity, res[num])
                 dispatch(entity, "post_add", db=self, result=res[num])
+
         return collections
 
     def delete(self, entity: Collection, **kwargs):
@@ -273,10 +274,14 @@ class Database(ArangoDatabase):
             data = entity.model_dump(mode="json", by_alias=True)
 
         setattr(entity, "_db", self)
-        res = collection.update(data, **kwargs)
-        entity._dirty.clear()
+        self._entity_pre_process(data)
 
+        res = collection.update(data, **kwargs)
+
+        entity._dirty.clear()
+        self._entity_post_process(entity, res)
         dispatch(entity, "post_update", db=self, result=res)
+
         return res
 
     def bulk_update(self, entity_list, only_dirty=False, **kwargs):
@@ -299,6 +304,7 @@ class Database(ArangoDatabase):
             if only_dirty:
                 if not entity._dirty:
                     return entity
+
                 dispatch(entity, "pre_update", db=self)  # In case of updates to fields
                 data = {
                     k: v
@@ -314,6 +320,8 @@ class Database(ArangoDatabase):
             entity_dict_list = collection_dict.get("entity_dict_list", list())
             entity_obj_list = collection_dict.get("entity_obj_list", list())
 
+            self._entity_pre_process(data)
+
             entity_dict_list.append(data)
             entity_obj_list.append(entity)
 
@@ -323,7 +331,7 @@ class Database(ArangoDatabase):
 
             collections[entity.__collection__] = collection_dict
             setattr(entity, "_db", self)
-            entity._dirty.clear()
+            # entity._dirty.clear()
 
         for _, data in collections.items():
             collection_model = data.get("collection_model")
@@ -333,7 +341,9 @@ class Database(ArangoDatabase):
             res = collection_model.update_many(entity_dict_list, **kwargs)
             for num, entity in enumerate(entity_obj_list, start=0):
                 entity._dirty.clear()
+                self._entity_post_process(entity, res[num])
                 dispatch(entity, "post_update", db=self, result=res[num])
+
         return collections
 
     def query(self, CollectionClass):

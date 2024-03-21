@@ -376,7 +376,7 @@ class Graph(object):
                     ret.append(v_obj)
 
                     if hasattr(v_obj, "_relations"):
-                        child_objs = get_linked_objects(v_obj)
+                        _ = get_linked_objects(v_obj)
 
             return ret
 

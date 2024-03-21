@@ -66,6 +66,19 @@ def test_reference_access(
     for car in cars:
         assert car.owner.id_ == person.id_
 
+def test_reference_access_with_cache_false(
+        test_db: Database, sample_person: Person, sample_cars: list[Car]  # noqa: F811
+):
+    for car in sample_cars:
+        car.owner_key = sample_person.key_
+        test_db.update(car, only_dirty=True)
+
+    person: Person = test_db.query(Person).by_key(sample_person.key_)
+
+    assert len(person.cars_no_cache) == len(sample_cars)
+    cars = test_db.query(Car).all()
+    for car in cars:
+        assert car.owner_no_cache.id_ == person.id_
 
 def test_detached_instance(
         test_db: Database, sample_person: Person, sample_cars: list[Car]  # noqa: F811

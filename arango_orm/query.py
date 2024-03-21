@@ -53,7 +53,6 @@ class Query(object):
 
     def by_key(self, key, **kwargs):
         "Return a single document using it's key"
-
         doc_dict = self._db.collection(
             self._CollectionClass.__collection__
         ).get(key, **kwargs)

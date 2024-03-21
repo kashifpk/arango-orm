@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "arango-orm"
-version = "1.0.1"
+version = "1.0.2"
 description = "A SQLAlchemy like ORM implementation for arangodb"
 authors = ["Kashif Iftikhar <kashif@compulife.com.pk>"]
 license = "GNU General Public License v2 (GPLv2)"
@@ -19,20 +19,27 @@ python-arango = "^7.6.2"
 pydantic = "^2.3.0"
 
 [tool.poetry.group.dev.dependencies]
-ruff = "^0.0.270"
+ruff = "^0.3.3"
 black = "^23.3.0"
 ipython = "^8.15.0"
 mkdocs = "^1.5.3"
 mkdocs-material = "^9.4.2"
 mkdocstrings = {extras = ["python"], version = "^0.23.0"}
 
-
 [tool.poetry.group.test.dependencies]
-pytest = "^7.4.2"
+pytest = "^8.1.1"
+pytest-cov = "^4.1.0"
 
 [tool.black]
 line-length = 100
 
 [tool.ruff]
 line-length = 100
-src = ["arango_orm"]
+src = ["arango_orm", "tests"]
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+addopts = "--cov=arango_orm --cov-fail-under=50"
+testpaths = [
+    "tests",
+]

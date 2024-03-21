@@ -3,10 +3,10 @@ from pydoc import locate
 
 class Relationship(object):
     def __init__(self, col_class, field, **kwargs):
-        # target_field='_key', uselist=True, order_by=None
+        # target_field='key_', uselist=True, order_by=None
         self._col_class = col_class
         self.field = field
-        self.target_field = kwargs.get("target_field", "_key")
+        self.target_field = kwargs.get("target_field", "key_")
         self.uselist = kwargs["uselist"]
         self.order_by = kwargs.get("order_by", None)
         self.cache = kwargs.get("cache", True)
@@ -29,7 +29,7 @@ class GraphRelationship(Relationship):
 def relationship(
     col_class_or_name,
     field: str,
-    target_field: str = "_key",
+    target_field: str = "key_",
     uselist: bool | None = None,
     order_by: str | None = None,
     cache: bool = True
@@ -41,11 +41,11 @@ def relationship(
 
     :param col_class_or_name: Collection class or fully qualified name string of the class
     :param field: The local field's name used for the linkage
-    :param target_field: Default '_key'. The field in the target collection to match to
+    :param target_field: Default 'key_'. The field in the target collection to match to
     :param uselist:
         Default None. If not specified then this parameter is determined automatically
-        based on whether we are linking to the _key field in which case uselist is False.
-        When linking to fields other than _key, this parameter is set to True.
+        based on whether we are linking to the key_ field in which case uselist is False.
+        When linking to fields other than key_, this parameter is set to True.
     :param order_by: Default None. Not implemented yet. Will be used to sort linked documents
     :param cache:
         Default True. Cache fetched documents so future access does not require querying
@@ -53,7 +53,7 @@ def relationship(
     """
 
     if uselist is None:
-        if "_key" == target_field:
+        if "key_" == target_field:
             uselist = False
         else:
             uselist = True

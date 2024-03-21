@@ -1,3 +1,5 @@
-from .collections import Collection, Relation  # noqa=F401
-from .graph import Graph, GraphConnection  # noqa=F401
-from .database import Database  # noqa=F401
+from .collections import Collection, Relation
+from .graph import Graph, GraphConnection
+from .database import Database
+
+__all__ = [Collection, Relation, Graph, GraphConnection, Database]

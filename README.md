@@ -604,7 +604,14 @@ print(gotham_residents)
 
 ## Running the Test Cases
 
+Set env variables in .env file, then load the env
 
-```bash
-ARANGO_HOSTS="http://127.0.0.1:8529" ARANGO_USERNAME=root ARANGO_PASSWORD=toor ARANGO_DATABASE=test_db pytest tests
+```shell
+set -a; source .env; set +a
+```
+
+Afterwards run tests
+
+```
+poetry run pytest
 ```

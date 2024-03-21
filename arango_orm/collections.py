@@ -22,7 +22,6 @@ class Collection(BaseModel):
         "__collection__",
         "_safe_list",
         "_relations",
-        "_id",
         "_index",
         "config_",
         "_collections_from",
@@ -57,6 +56,8 @@ class Collection(BaseModel):
             kwargs["key_"] = kwargs["_key"]
             del kwargs["_key"]
 
+        if "_id" in kwargs:
+            del kwargs["_id"]
         # if self._collection_config.get("key_field", None) and 'key_' not in kwargs:
         #     kwargs["key_"] = kwargs[self._collection_config["key_field"]]
 
@@ -108,6 +109,14 @@ class Collection(BaseModel):
     def _key(self, value):
         self.key_ = value
 
+    @property
+    def _rev(self) -> str | None:
+        return self.rev_
+
+    @_rev.setter
+    def _rev(self, value):
+        self.rev_ = value
+
     def __setattr__(self, attr, value):
         a_real = attr
 
@@ -128,6 +137,9 @@ class Collection(BaseModel):
         self._dirty.add(a_real)
 
     def __getattribute__(self, item: str):
+        if item in ['_id', 'id_']:
+            return super().__getattribute__('id_')
+
         if item == "_key":
             return super().__getattribute__("key_")
 
