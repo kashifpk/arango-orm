@@ -80,6 +80,9 @@ class Collection(BaseModel):
 
                 continue
 
+            if fname in self._annotated_fields:
+                continue
+
             self._fields[fname] = f
 
         self._dirty = set(self._fields.keys())
