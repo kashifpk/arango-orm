@@ -27,9 +27,9 @@ class Database(ArangoDatabase):
     also allows creating and dropping collections etc.
     """
 
-    def __init__(self, db):
+    def __init__(self, db: ArangoDatabase):
         """Create database instance."""
-        self._db = db
+        self._db: ArangoDatabase = db
         super(Database, self).__init__(db._conn)
 
     #         super(Database, self).__init__(

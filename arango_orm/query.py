@@ -64,6 +64,19 @@ class Query(object):
 
         return self._CollectionClass(**doc_dict, _db=self._db)
 
+    def by_keys(self, keys, **kwargs):
+        "Return a list of documents using their keys"
+
+        doc_dicts = self._db.collection(
+            self._CollectionClass.__collection__
+        ).get_many(keys, **kwargs)
+
+        res = []
+        for doc_dict in doc_dicts:
+            res.append(self._CollectionClass(**doc_dict, _db=self._db))
+
+        return res
+
     def filter(
         self,
         condition,

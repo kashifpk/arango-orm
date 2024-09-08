@@ -27,6 +27,22 @@ test_db = client.db('test', username='test', password='test')
 db = Database(test_db)
 ```
 
+## Define a Collection
+
+```python
+from datetime import date
+from pydantic import Field
+from arango_orm import Collection
+
+
+class Student(Collection):
+
+    __collection__ = 'students'
+
+    name: str
+    dob: date
+```
+
 ## Create Collection in the Database
 
 
