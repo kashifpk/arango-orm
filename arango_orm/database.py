@@ -182,7 +182,7 @@ class Database(ArangoDatabase):
         entity._dirty.clear()
 
         dispatch(entity, "post_add", db=self, result=res)
-        return res
+        return entity
 
     def bulk_add(self, entity_list, only_dirty=False, **kwargs):
         """
@@ -282,7 +282,7 @@ class Database(ArangoDatabase):
         self._entity_post_process(entity, res)
         dispatch(entity, "post_update", db=self, result=res)
 
-        return res
+        return entity
 
     def bulk_update(self, entity_list, only_dirty=False, **kwargs):
         """
@@ -346,7 +346,7 @@ class Database(ArangoDatabase):
 
         return collections
 
-    def query(self, CollectionClass):
+    def query(self, CollectionClass) -> Query:
         "Query given collection"
 
         return Query(CollectionClass, self)

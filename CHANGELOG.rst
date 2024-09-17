@@ -1,6 +1,11 @@
 CHANGES
 =======
 
+Version 1.0.3
+-------------
+
+- Add and Update returned dicts instead of model objects, fixed now.
+
 Version 1.0.2
 -------------
 

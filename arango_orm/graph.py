@@ -298,7 +298,7 @@ class Graph(object):
         Any vertices found in traversal that don't belong to the specified
         collection names given in this parameter will be ignored.
 
-        :param condition: String containing conditions in JS format. If only is provided
+        :param condition: String containing conditions in JS format. If `only` is provided
         then these conditions are merged with only using logical AND. Within the condition
         3 objects (config, vertex, path) are available for use within the traversal context.
         """

@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "arango-orm"
-version = "1.0.2"
+version = "1.0.3"
 description = "A SQLAlchemy like ORM implementation for arangodb"
 authors = ["Kashif Iftikhar <kashif@compulife.com.pk>"]
 license = "GNU General Public License v2 (GPLv2)"

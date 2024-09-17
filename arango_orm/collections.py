@@ -7,7 +7,7 @@ if TYPE_CHECKING:
     IncEx: TypeAlias = "set[int] | set[str] | dict[int, Any] | dict[str, Any] | None"
 
 
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, Field, ConfigDict, model_serializer
 from pydantic.fields import FieldInfo
 
 from .config import CollectionConfig
@@ -39,7 +39,9 @@ class Collection(BaseModel):
     ]
 
     model_config: ClassVar[dict] = ConfigDict(
-        populate_by_name=True, arbitrary_types_allowed=True, ignored_types=(Relationship,)
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+        ignored_types=(Relationship,),
     )
     _collection_config: ClassVar[dict] = CollectionConfig()
     _dirty: set
@@ -137,8 +139,8 @@ class Collection(BaseModel):
         self._dirty.add(a_real)
 
     def __getattribute__(self, item: str):
-        if item in ['_id', 'id_']:
-            return super().__getattribute__('id_')
+        if item in ["_id", "id_"]:
+            return super().__getattribute__("id_")
 
         if item == "_key":
             return super().__getattribute__("key_")
@@ -179,7 +181,8 @@ class Collection(BaseModel):
 
         else:
             query = self._db.query(ReferencedClass).filter(
-                relationship.target_field + "==@val", val=getattr(self, relationship.field)
+                relationship.target_field + "==@val",
+                val=getattr(self, relationship.field),
             )
 
             if relationship.uselist is False:
@@ -207,9 +210,8 @@ class Collection(BaseModel):
         round_trip: bool = False,
         warnings: bool = True,
     ) -> dict[str, Any]:
-
         exclude = exclude or set()
-        exclude_fields = {'_db', '_refs'}
+        exclude_fields = {"_db", "_refs"}
         if exclude:
             exclude = set(exclude)
             exclude.update(exclude_fields)
