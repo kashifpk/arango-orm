@@ -21,6 +21,7 @@ class Collection(BaseModel):
     _safe_list: ClassVar[list[str]] = [
         "__collection__",
         "_safe_list",
+        "_annotated_fields"
         "_relations",
         "_index",
         "config_",
@@ -37,6 +38,8 @@ class Collection(BaseModel):
         "_refs_vals",
         "model_config",  # pydantic configuration attribute
     ]
+
+    _annotated_fields: ClassVar[list[str]] = []
 
     model_config: ClassVar[dict] = ConfigDict(
         populate_by_name=True,
@@ -77,6 +80,9 @@ class Collection(BaseModel):
                 if f.default.__class__ is Relationship:
                     self._refs[fname] = f
 
+                continue
+
+            if fname in self._annotated_fields:
                 continue
 
             self._fields[fname] = f
@@ -145,7 +151,7 @@ class Collection(BaseModel):
         if item == "_key":
             return super().__getattribute__("key_")
 
-        if item.startswith(("_", "model_")):
+        if item.startswith(("_", "model_") or item in self._annotated_fields):
             return super().__getattribute__(item)
 
         if item in self._safe_list:
