@@ -3,40 +3,36 @@
 from datetime import date
 
 from arango.exceptions import GraphPropertiesError
+from arango_orm.database import Collection, Database, Graph, Relation
 
-from arango_orm.database import Database, Graph, Collection, Relation
-
+from . import all_in
 from .data import (
-    UniversityGraph,
-    Student,
-    Teacher,
-    Subject,
-    SpecializesIn,
     Area,
-    teachers_data,
+    SpecializesIn,
+    Student,
+    Subject,
+    Teacher,
+    UniversityGraph,
+    areas_data,
+    specializations_data,
     students_data,
     subjects_data,
-    specializations_data,
-    areas_data,
+    teachers_data,
 )
-
-
 from .fixtures import (  # noqa: F401
-    test_db,
-    ensure_person_collection,
-    ensure_car_collection,
-    ensure_student_collection,
-    ensure_teacher_collection,
-    ensure_subject_collection,
     ensure_area_collection,
+    ensure_car_collection,
+    ensure_person_collection,
     ensure_specializes_in_collection,
+    ensure_student_collection,
+    ensure_subject_collection,
+    ensure_teacher_collection,
     sample_person,
+    test_db,
     university_graph,
     university_graph_data,
     university_graph_data_with_relations,
 )
-
-from . import all_in
 
 
 def test_graph_and_collections_exist(test_db: Database, university_graph: Graph):  # noqa: F811
@@ -90,7 +86,8 @@ def test_node_expansion_depth_1(
     assert hasattr(bruce._relations["resides_in"][0], "_object_from")
     assert hasattr(bruce._relations["resides_in"][0], "_object_to")
     assert hasattr(bruce._relations["resides_in"][0], "_next")
-    assert bruce._relations["resides_in"][0]._object_from is bruce
+
+    assert bruce._relations["resides_in"][0]._object_from.id_ == bruce.id_
     assert "Gotham" == bruce._relations["resides_in"][0]._object_to.key_
     assert "Gotham" == bruce._relations["resides_in"][0]._next.key_
     assert not hasattr(bruce._relations["resides_in"][0]._next, "_relations")

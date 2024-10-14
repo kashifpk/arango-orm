@@ -1,7 +1,7 @@
 from inspect import isclass
 from typing import Type
 
-from .collections import Relation, Collection
+from .collections import Collection, Relation
 
 
 class GraphConnection(object):
@@ -310,6 +310,8 @@ class Graph(object):
         filter_func = None
         c_str = ""
 
+        aql = f"FOR vertex, edge, path IN 1..{depth} {direction} '{doc_id}' GRAPH {self.__graph__}\n"
+
         if only:
             if not isinstance(only, (list, tuple)):
                 only = [
@@ -320,36 +322,40 @@ class Graph(object):
                 if not isinstance(c, str) and hasattr(c, "__collection__"):
                     c = c.__collection__
 
-                c_str += "vertex._id.match(/" + c + r"\/.*/) ||"
+                c_str += "vertex._id LIKE '" + c + "/%' ||"
 
             if c_str:
                 c_str = c_str[:-3]
 
         if condition:
             if c_str:
-                c_str = c_str + ' && ' + condition
+                c_str = c_str + ' AND ' + condition
             else:
                 c_str = condition
 
         if c_str:
-            filter_func = """
-                if ({condition})
-                    {{ return; }}
-                return 'exclude';
-            """.format(
-                condition=c_str
-            )
+            aql += "FILTER " + c_str + "\n"
 
-        results = graph.traverse(
-            start_vertex=doc_id,
-            direction=direction,
-            vertex_uniqueness="path",
-            min_depth=1,
-            max_depth=depth,
-            filter_func=filter_func,
-        )
 
-        self._objectify_results(results["paths"], doc_obj)
+        aql += "RETURN path"
+
+        # print(aql)
+
+        new_doc = self.aql(aql)
+        if new_doc:
+            doc_obj._relations = new_doc._relations
+
+        # results = graph.traverse(
+        #     start_vertex=doc_id,
+        #     direction=direction,
+        #     vertex_uniqueness="path",
+        #     min_depth=1,
+        #     max_depth=depth,
+        #     filter_func=filter_func,
+        # )
+
+
+        # self._objectify_results(results["paths"], doc_obj)
 
     def aql(self, query, **kwargs):
         """Run AQL graph traversal query."""

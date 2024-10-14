@@ -1,6 +1,12 @@
 CHANGES
 =======
 
+Version 1.1.0
+-------------
+
+- Graph.expand no longer uses the `/_api/traversal` endpoint via python-arango as it was deprecated and now removed in
+  ArangoDB. Instead graph expand now builds AQL query for graph traversal.
+
 Version 1.0.3
 -------------
 

@@ -5,18 +5,18 @@ Adds some SQLAlchemy like ORM methods to it.
 """
 
 import logging
-from typing import Literal
 from copy import deepcopy
 from inspect import isclass
+from typing import Literal
 
 from arango.database import StandardDatabase as ArangoDatabase
 from arango.exceptions import CollectionDeleteError
 
 # from arango.executor import DefaultExecutor
 from .collections import Collection, Relation
-from .query import Query
-from .graph import Graph
 from .event import dispatch
+from .graph import Graph
+from .query import Query
 
 log = logging.getLogger(__name__)
 
@@ -181,7 +181,7 @@ class Database(ArangoDatabase):
         self._entity_post_process(entity, res)
         entity._dirty.clear()
 
-        dispatch(entity, "post_add", db=self, result=res)
+        dispatch(entity, "post_add", db=self, result=entity)
         return entity
 
     def bulk_add(self, entity_list, only_dirty=False, **kwargs):
@@ -234,7 +234,7 @@ class Database(ArangoDatabase):
             for num, entity in enumerate(entity_obj_list, start=0):
                 entity._dirty.clear()
                 self._entity_post_process(entity, res[num])
-                dispatch(entity, "post_add", db=self, result=res[num])
+                dispatch(entity, "post_add", db=self, result=entity)
 
         return collections
 
@@ -243,10 +243,10 @@ class Database(ArangoDatabase):
         dispatch(entity, "pre_delete", db=self)
 
         collection = self._db.collection(entity.__collection__)
-        res = collection.delete(entity.key_, **kwargs)
+        collection.delete(entity.key_, **kwargs)
 
-        dispatch(entity, "post_delete", db=self, result=res)
-        return res
+        dispatch(entity, "post_delete", db=self, result=entity)
+        return entity
 
     def bulk_delete(self, entity_list, **kwargs):
         """Bulk delete utility, based on delete method. Return a list of results."""
@@ -280,7 +280,7 @@ class Database(ArangoDatabase):
 
         entity._dirty.clear()
         self._entity_post_process(entity, res)
-        dispatch(entity, "post_update", db=self, result=res)
+        dispatch(entity, "post_update", db=self, result=entity)
 
         return entity
 
@@ -342,7 +342,7 @@ class Database(ArangoDatabase):
             for num, entity in enumerate(entity_obj_list, start=0):
                 entity._dirty.clear()
                 self._entity_post_process(entity, res[num])
-                dispatch(entity, "post_update", db=self, result=res[num])
+                dispatch(entity, "post_update", db=self, result=entity)
 
         return collections
 

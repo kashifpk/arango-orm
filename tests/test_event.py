@@ -1,10 +1,10 @@
 import logging
 from datetime import date
-from unittest.mock import create_autospec, Mock
+from unittest.mock import Mock, create_autospec
 
 from arango_orm.event import dispatch, listen, listens_for
 
-from .fixtures import test_db, ensure_person_collection, Person  # noqa: F401
+from .fixtures import Person, ensure_person_collection, test_db  # noqa: F401
 
 log = logging.getLogger(__name__)
 
