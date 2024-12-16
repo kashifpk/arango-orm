@@ -620,14 +620,28 @@ print(gotham_residents)
 
 ## Running the Test Cases
 
-Set env variables in .env file, then load the env
+To run the test cases, start by running `docker compose up` to start the ArangoDB instance. Verify that the instance is running by navigating to http://localhost:8560 in your browser.
+
+Log in to the ArangoDB web interface and create a database named `test`.
+
+Next, create a `.env` file in the root directory of your project. Add the following variables to the file:
+
+```shell
+ARANGO_USERNAME="root"
+ARANGO_PASSWORD="password"
+ARANGO_HOSTS="http://localhost:8560"
+ARANGO_DATABASE="test"
+```
+
+Once the `.env` file is set up, load the environment variables into your shell by running:
+
 
 ```shell
 set -a; source .env; set +a
 ```
 
-Afterwards run tests
+Afterwards, run the tests using pytest to ensure everything is working as expected:
 
-```
+```shell
 poetry run pytest
 ```

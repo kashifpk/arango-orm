@@ -15,8 +15,8 @@ packages = [{include="arango_orm"}]
 
 [tool.poetry.dependencies]
 python = "^3.11"
-python-arango = "^7.6.2"
-pydantic = "^2.3.0"
+python-arango = "^8.1.4"
+pydantic = "^2.10.3"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.3.3"
