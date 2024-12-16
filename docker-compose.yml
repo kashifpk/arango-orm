@@ -13,7 +13,7 @@ services:
       - arangodb
 
   arangodb:
-    image: arangodb:3.6.2
+    image: arangodb:3.11.10
     ports:
             - "8560:8529"
     expose:
